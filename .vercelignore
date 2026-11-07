@@ -1,0 +1,12 @@
+.git/
+.vercel/
+.env*
+node_modules/
+.next/
+.test-postgres/
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo
+supabase/.temp/
+supabase/.branches/

@@ -9,3 +9,4 @@ playwright-report/
 .test-postgres/
 supabase/.temp/
 supabase/.branches/
+.vercel/
