@@ -2,7 +2,7 @@
 import { useActionState, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { FormState } from '@/lib/forms';
-export function ActionForm({ action, children, label }: { action: (state: FormState, form: FormData) => Promise<FormState>; children: React.ReactNode; label: string }) {
+export function ActionForm({ action, children, label, submitClassName }: { action: (state: FormState, form: FormData) => Promise<FormState>; children: React.ReactNode; label: string; submitClassName?: string }) {
   const [state, submit, pending] = useActionState(action, {});
   const [validationError, setValidationError] = useState('');
   const feedback = useRef<HTMLDivElement>(null);
@@ -22,6 +22,6 @@ export function ActionForm({ action, children, label }: { action: (state: FormSt
       {!validationError && state.message && <p role="status" className="rounded-lg border border-green-200 bg-green-50 p-4 text-green-900">{state.message}</p>}
       {state.token && <p className="break-all rounded border p-3 font-mono select-all">{state.token}</p>}
     </div>
-    <Button type="submit" disabled={pending}>{pending ? 'Please wait…' : label}</Button>
+    <Button type="submit" disabled={pending} className={submitClassName}>{pending ? 'Please wait…' : label}</Button>
   </form>;
 }

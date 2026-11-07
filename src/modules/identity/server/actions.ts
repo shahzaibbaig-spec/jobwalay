@@ -30,6 +30,9 @@ export async function login(_: FormState, form: FormData): Promise<FormState> {
 export async function signup(_: FormState, form: FormData): Promise<FormState> {
   const input = credentialsSchema.safeParse(Object.fromEntries(form));
   if (!input.success) return { error: 'Enter a valid email address and a password between 12 and 128 characters.' };
+  if (form.has('confirmPassword') && form.get('confirmPassword') !== input.data.password) {
+    return { error: 'Your passwords do not match. Please enter the same password in both fields.' };
+  }
   await rememberDestination(form.get('next'));
   const db = await createClient();
   let result: Awaited<ReturnType<typeof db.auth.signUp>>;

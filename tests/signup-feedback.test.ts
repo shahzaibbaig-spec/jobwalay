@@ -18,6 +18,11 @@ describe('signup feedback', () => {
     return data;
   };
   beforeEach(() => vi.clearAllMocks());
+  it('rejects mismatched password confirmation before requesting an account', async () => {
+    const input = form(); input.set('confirmPassword', 'Different-password-123');
+    expect((await signup({}, input)).error).toContain('passwords do not match');
+    expect(mocks.signUp).not.toHaveBeenCalled();
+  });
   it('explains email confirmation after a successful request without claiming a duplicate account was created', async () => {
     mocks.signUp.mockResolvedValue({ data: { user: null, session: null }, error: null });
     expect((await signup({}, form())).message).toContain('verification link');
