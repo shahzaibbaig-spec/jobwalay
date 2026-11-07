@@ -1,0 +1,6 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { readActivity } from '@/modules/assessments/integrity/server';
+import { activityFilters,ActivityTimeline } from '@/modules/assessments/integrity/timeline';
+import { AssessmentRules } from '@/modules/assessments/integrity/rules';
+export default async function CandidateActivity({params,searchParams}:{params:Promise<{attemptId:string}>;searchParams:Promise<Record<string,string|string[]|undefined>>}){const {attemptId}=await params;const raw=await searchParams;const parsed=activityFilters.safeParse({before:raw.before,kind:raw.kind||undefined});if(!parsed.success)notFound();const data=await readActivity(attemptId,parsed.data);return <div className="space-y-7"><Link href={`/candidate/assessments/${attemptId}`}>← Assessment, support and appeals</Link><h1 className="text-3xl font-bold">Your recorded assessment activity</h1><AssessmentRules /><p>This view shows received observations. The hiring team’s internal review notes remain private. Use the assessment issue form to provide context or request support; after closure, use the appeal form where policy permits.</p><ActivityTimeline events={data.events} next={data.next} kind={parsed.data.kind} path={`/candidate/assessments/${attemptId}/activity`} /></div>;}

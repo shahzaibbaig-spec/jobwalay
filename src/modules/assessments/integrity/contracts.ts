@@ -1,0 +1,10 @@
+import { z } from 'zod';
+export const disclosureVersion='browser-integrity-v1' as const;
+export const browserKinds=['visibility_hidden','visibility_visible','fullscreen_enter','fullscreen_exit','fullscreen_unavailable','window_blur','window_focus','network_offline','network_online','request_failed','request_recovered','navigation_away','navigation_back','monitoring_started','queue_overflow'] as const;
+export type BrowserKind=typeof browserKinds[number];
+export const integrityEventSchema=z.object({id:z.uuid(),kind:z.enum(browserKinds),observedAt:z.iso.datetime().refine(v=>new Date(v).getUTCFullYear()>=2000&&new Date(v).getUTCFullYear()<2100)}).strict();
+export type IntegrityEvent=z.infer<typeof integrityEventSchema>;
+export const monitoringBatchSchema=z.object({sessionId:z.uuid(),disclosure:z.literal(disclosureVersion),events:z.array(integrityEventSchema).max(20),release:z.boolean().default(false)}).strict();
+export const monitorReviewSchema=z.object({outcome:z.enum(['no_conclusion','context_explained','follow_up']),rationale:z.string().trim().min(5).max(2000)}).strict();
+export const activityFilters=z.object({before:z.coerce.number().int().positive().max(Number.MAX_SAFE_INTEGER).optional(),kind:z.enum([...browserKinds,'simultaneous_session']).optional()});
+export const eventLabels:Record<string,string>={visibility_hidden:'Document hidden',visibility_visible:'Document visible',fullscreen_enter:'Entered fullscreen',fullscreen_exit:'Left fullscreen',fullscreen_unavailable:'Fullscreen unavailable or declined',window_blur:'Window lost focus',window_focus:'Window gained focus',network_offline:'Browser reported offline',network_online:'Browser reported online',request_failed:'Request interrupted',request_recovered:'Requests reconnected',navigation_away:'Page departure observed',navigation_back:'Page restored',monitoring_started:'Monitoring started',queue_overflow:'Local observation buffer reached its limit',simultaneous_session:'Overlapping recent browser sessions (server observation)'};

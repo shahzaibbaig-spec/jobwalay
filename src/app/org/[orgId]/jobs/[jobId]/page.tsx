@@ -1,0 +1,22 @@
+import Link from 'next/link';
+import { requireJob } from '@/modules/jobs/server/service';
+import { JobForm } from '@/modules/jobs/components/job-form';
+import { ActionForm } from '@/components/action-form';
+import { transitionJobAction,assignRecruiterAction } from '@/modules/jobs/server/actions';
+import { jobApplications } from '@/modules/applications/server/queries';
+import { dateTime } from '@/lib/format';
+export default async function JobEditor({params}:{params:Promise<{orgId:string;jobId:string}>}) {
+  const {orgId,jobId}=await params;
+  const {db,job,membership}=await requireJob(orgId,jobId);
+  const {data:versions,error}=await db.from('assessment_versions').select('id,version_number,assessments(title)').eq('organization_id',orgId).eq('status','published');
+  if(error) throw new Error('Unable to load assessments');
+  const applicants=await jobApplications(orgId,jobId);
+  const {data:recruiters}=membership.role!=='recruiter'?await db.from('memberships').select('id,user_id').eq('organization_id',orgId).eq('role','recruiter').eq('status','active'):{data:[]};
+  const {data:assigned}=await db.from('job_members').select('membership_id').eq('organization_id',orgId).eq('job_id',jobId);
+  const transitions=job.status==='draft'?['published','archived']:job.status==='published'?['closed']:job.status==='closed'?['published','archived']:[];
+  return <div className="space-y-8"><header className="max-w-3xl"><span className="badge">{job.status}</span><h1 className="mt-3 text-3xl font-bold">{job.title}</h1>{job.moderation_status==='hidden'&&<p className="mt-4 rounded border border-amber-300 bg-amber-50 p-4">This job is hidden by platform moderation. New applications and public discovery are blocked. Contact platform support for review.</p>}<p className="mt-3 text-muted-foreground">Version {job.version} · Updates to published jobs are visible immediately.</p>{job.status==='published'&&<p className="mt-3"><Link href={`/jobs/${job.id}`}>View public job</Link></p>}</header><section className="panel max-w-3xl"><h2 className="mb-5 text-xl font-bold">Publication controls</h2>{!transitions.length&&<p>This job is archived and cannot be changed.</p>}<div className="flex flex-wrap gap-5">{transitions.map(status=><ActionForm key={`${status}-${job.version}`} action={transitionJobAction} label={status==='published'?(job.status==='closed'?'Reopen job':'Publish job'):status==='closed'?'Close applications':'Archive job'}><input type="hidden" name="organizationId" value={orgId} /><input type="hidden" name="jobId" value={job.id} /><input type="hidden" name="version" value={job.version} /><input type="hidden" name="status" value={status} /></ActionForm>)}</div></section>
+    {job.status!=='archived'&&<div className="max-w-3xl"><JobForm key={job.version} org={orgId} job={job} assessments={versions?.map(v=>({id:v.id,label:`${v.assessments?.title??'Assessment'} · v${v.version_number}`}))??[]} /></div>}
+    {membership.role!=='recruiter'&&<section className="panel max-w-3xl"><h2 className="mb-4 text-xl font-bold">Recruiter access</h2><p className="mb-5 text-sm text-muted-foreground">Assigned recruiters can edit this job and view its profile-based applications. Owners and administrators always have access.</p><ul className="space-y-5">{recruiters?.map(r=>{const has=assigned?.some(a=>a.membership_id===r.id);return <li className="rounded-lg border p-4" key={r.id}><p className="mb-3 break-all text-sm">{r.user_id} · {has?'Assigned':'Not assigned'}</p><ActionForm action={assignRecruiterAction} label={has?'Remove assignment':'Assign recruiter'}><input type="hidden" name="organizationId" value={orgId} /><input type="hidden" name="jobId" value={jobId} /><input type="hidden" name="membershipId" value={r.id} /><input type="hidden" name="assign" value={has?'false':'true'} /></ActionForm></li>;})}</ul>{!recruiters?.length&&<p>Invite a recruiter from the team administration page.</p>}</section>}
+    <section className="max-w-3xl"><h2 className="mb-5 text-xl font-bold">Applications</h2><p className="mb-5 text-sm text-muted-foreground">Showing the latest 100 applications.</p>{!applicants.length?<p className="panel">No applications yet.</p>:<ul className="space-y-3">{applicants.map(a=><li className="panel" key={a.id}><h3 className="font-bold"><Link href={`/org/${orgId}/applications/${a.id}`}>{a.candidate_name}</Link></h3><p className="mt-2">{a.candidate_headline}</p><p className="mt-3 text-sm text-muted-foreground">Applied {dateTime(a.submitted_at)} PKT</p></li>)}</ul>}</section>
+  </div>;
+}

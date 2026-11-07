@@ -1,0 +1,64 @@
+@import "tailwindcss";
+@theme {
+  --font-sans: Arial, Helvetica, sans-serif;
+  --color-background: #f5f8fd;
+  --color-foreground: #163452;
+  --color-card: #ffffff;
+  --color-primary: #0758d9;
+  --color-primary-hover: #0645ad;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #00804a;
+  --color-secondary-foreground: #ffffff;
+  --color-muted-foreground: #52647c;
+  --color-border: #d8e3f0;
+  --color-border-strong: #7a8fa9;
+  --color-brand-navy: #052858;
+  --color-brand-blue: #005ee8;
+  --color-brand-cyan: #00a8ee;
+  --color-brand-green: #00a65a;
+  --color-brand-lime: #54dc4b;
+  --color-brand-soft: #edf4ff;
+  --color-brand-tint: #edf9f3;
+  --color-brand-line: #b8dfce;
+}
+@layer base {
+  *, ::before, ::after { border-color: var(--color-border); }
+  body { min-height: 100vh; background: radial-gradient(ellipse at 95% 0%, #e9f9f1 0%, transparent 35rem), var(--color-background); color: var(--color-foreground); }
+  a { text-underline-offset: 4px; }
+  main a:not([data-slot]) { color: var(--color-primary); text-decoration: underline; }
+  main a:not([data-slot]):hover { color: var(--color-primary-hover); }
+  a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 4px; }
+  input, textarea, select { min-width: 0; accent-color: var(--color-primary); }
+  ::selection { background: #c6efdc; color: var(--color-brand-navy); }
+}
+main h1, main h2, main h3 { color: var(--color-brand-navy); }
+main h1, main h2, main h3, main p { overflow-wrap: anywhere; }
+.field { display: block; width: 100%; min-height: 44px; border: 1px solid var(--color-border-strong); border-radius: .65rem; padding: .7rem .8rem; background: var(--color-card); color: var(--color-foreground); }
+.field::placeholder { color: var(--color-muted-foreground); opacity: 1; }
+.field:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-color: var(--color-primary); }
+.field:disabled { background: #edf1f7; }
+.panel { border: 1px solid var(--color-border); border-radius: 1rem; background: var(--color-card); padding: 1.5rem; box-shadow: 0 4px 20px #05285805; }
+a.panel:hover { border-color: var(--color-primary); }
+.badge { display: inline-flex; border: 1px solid #c5e9d7; border-radius: 9999px; padding: .25rem .75rem; background: #e7f7ee; color: #006b3d; font-size: .75rem; font-weight: 600; text-transform: capitalize; }
+.site-header { position: relative; border-bottom: 1px solid var(--color-border); background: #ffffff; box-shadow: 0 2px 16px #05285805; }
+.site-header::before { content: ''; position: absolute; inset: 0 0 auto; height: 3px; background: linear-gradient(90deg, var(--color-brand-blue), var(--color-brand-cyan) 45%, var(--color-brand-green) 78%, var(--color-brand-lime)); }
+.brand-lockup { display: inline-flex; flex-shrink: 0; align-items: center; gap: .45rem; }
+.brand-mark { position: relative; display: block; width: 70px; height: 54px; overflow: hidden; }
+.brand-mark img { position: absolute; left: -11px; top: -10px; width: 92px; height: 92px; max-width: none; }
+.brand-name { color: var(--color-brand-navy); font-size: 1.7rem; font-weight: 800; letter-spacing: -.065em; }
+.brand-name span { color: var(--color-secondary); }
+.site-nav-links { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .4rem; font-size: .875rem; }
+.site-nav-links a { display: inline-flex; align-items: center; min-height: 44px; padding: .55rem .7rem; border-radius: .6rem; color: var(--color-brand-navy); font-weight: 600; }
+.site-nav-links a:hover { color: var(--color-primary); background: var(--color-brand-soft); }
+.site-nav-links .nav-signin { padding-inline: 1.15rem; color: #ffffff; background: var(--color-primary); }
+.site-nav-links .nav-signin:hover { color: #ffffff; background: var(--color-primary-hover); }
+.home-hero { position: relative; isolation: isolate; }
+.home-hero::before { content: ''; position: absolute; z-index: -1; inset: -1rem -1rem -2rem; border-radius: 2rem; background: radial-gradient(ellipse at 15% 20%, #e1edff 0%, transparent 65%), radial-gradient(ellipse at 85% 80%, #ddf5e8 0%, transparent 60%); }
+.brand-gradient-text { background: linear-gradient(100deg, var(--color-primary) 5%, var(--color-secondary) 95%); background-clip: text; color: transparent; }
+@media (forced-colors: active) {
+  .brand-gradient-text { background: none; color: CanvasText; }
+  .badge, .panel, .field { border-color: CanvasText; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { scroll-behavior: auto !important; transition: none !important; }
+}

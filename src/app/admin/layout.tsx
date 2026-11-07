@@ -1,0 +1,3 @@
+import Link from 'next/link';
+import { requirePlatformAdmin } from '@/lib/auth/context';
+export default async function AdminLayout({children}:{children:React.ReactNode}){await requirePlatformAdmin();return <><nav className="mb-8 flex flex-wrap gap-5 border-b pb-5 text-sm" aria-label="Platform administration">{[['','Overview'],['/verification','Verification'],['/jobs','Job moderation'],['/reports','Abuse reports'],['/users','Users'],['/organizations','Organizations'],['/integrity','Review oversight'],['/audit','Audit logs']].map(([path,label])=><Link href={`/admin${path}`} key={path}>{label}</Link>)}</nav>{children}</>;}

@@ -1,0 +1,1 @@
+export default function Loading(){return <div role="status" aria-live="polite" aria-busy="true" className="panel max-w-3xl space-y-4"><p className="font-semibold">Loading your page…</p><p className="text-sm text-muted-foreground">Please wait while current information is retrieved.</p></div>;}

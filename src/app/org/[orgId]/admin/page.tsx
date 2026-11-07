@@ -1,0 +1,13 @@
+import { requireOrganization } from '@/lib/auth/context';
+import { ActionForm } from '@/components/action-form';
+import { Field } from '@/components/field';
+import { Button } from '@/components/ui/button';
+import { inviteAction, revokeAction } from '@/modules/organizations/server/actions';
+export default async function OrganizationAdmin({ params }: { params: Promise<{ orgId: string }> }) {
+  const { orgId } = await params;
+  const { db,organization,membership } = await requireOrganization(orgId,true);
+  const { data: members,error } = await db.from('memberships').select('id,user_id,role,status').eq('organization_id',orgId);
+  const { data: invites,error: inviteError } = await db.from('organization_invitations').select('id,email,role,expires_at,accepted_at').eq('organization_id',orgId).is('accepted_at',null);
+  if(error || inviteError) throw new Error('Unable to load team');
+  return <div className="space-y-8"><div><p className="text-sm text-secondary">ORGANIZATION ADMINISTRATION</p><h1 className="mt-2 text-3xl font-bold">{organization.name}</h1><p className="mt-3">Verification: {organization.verification_status}. Owner memberships are protected from removal.</p></div><section className="max-w-lg rounded-xl border bg-white p-6"><h2 className="mb-5 text-xl font-bold">Invite a teammate</h2><ActionForm action={inviteAction} label="Create invitation"><input type="hidden" name="organizationId" value={orgId} /><Field name="email" label="Recipient email" type="email" maxLength={254} /><label className="block space-y-2"><span>Organization role</span><select className="field" name="role"><option value="recruiter">Recruiter</option><option value="admin">Organization administrator</option></select></label></ActionForm></section><section><h2 className="mb-4 text-xl font-bold">Team memberships</h2><ul className="space-y-3">{members?.map(m => <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-white p-4"><span className="break-all">{m.user_id}<br /><span className="text-sm">{m.role} · {m.status}</span></span>{m.status==='active' && m.role!=='owner' && (m.role!=='admin'||membership.role==='owner') && <form action={revokeAction}><input type="hidden" name="organizationId" value={orgId} /><input type="hidden" name="memberId" value={m.id} /><Button variant="outline">Revoke access</Button></form>}</li>)}</ul></section><section><h2 className="text-xl font-bold">Outstanding invitations</h2><ul className="mt-4 space-y-2">{invites?.map(i => <li key={i.id}>{i.email} · {i.role} · expires {new Date(i.expires_at).toISOString().slice(0,10)}</li>)}</ul></section></div>;
+}

@@ -1,0 +1,7 @@
+import { notFound } from 'next/navigation';
+import { z } from 'zod';
+import { requireUser } from '@/lib/auth/context';
+import { publicJob } from '@/modules/jobs/server/queries';
+import { abuseReportAction } from '@/modules/administration/actions';
+import { ActionForm } from '@/components/action-form';
+export default async function ReportJob({params}:{params:Promise<{jobId:string}>}){await requireUser();const {jobId}=await params;if(!z.uuid().safeParse(jobId).success)notFound();const job=await publicJob(jobId);if(!job)notFound();return <section className="panel max-w-2xl space-y-6"><h1 className="text-3xl font-bold">Report {job.title}</h1><p>Your explanation is shared with independent platform moderators. The organization does not receive your report identity or explanation through its dashboard. Reports do not automatically hide jobs.</p><ActionForm action={abuseReportAction} label="Submit abuse report"><input name="jobId" type="hidden" value={jobId} /><label className="block space-y-2"><span>Category</span><select className="field" name="category">{['fraud','discrimination','misleading','unsafe','spam','other'].map(c=><option key={c}>{c}</option>)}</select></label><label className="block space-y-2"><span>Describe the issue (avoid unnecessary personal information)</span><textarea className="field min-h-40" name="details" minLength={10} maxLength={2000} required /></label></ActionForm></section>;}

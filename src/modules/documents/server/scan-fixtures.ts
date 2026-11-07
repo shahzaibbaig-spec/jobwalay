@@ -1,0 +1,7 @@
+import 'server-only';
+// Harmless official AV test marker, decoded only in memory. Never written to
+// an application file, Supabase Storage or the user's database.
+export function antivirusTestBytes(){return Buffer.from('WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo=','base64');}
+function pdf(objects:string[]){let output='%PDF-1.4\n';const offsets=[0];objects.forEach((body,index)=>{offsets.push(Buffer.byteLength(output));output+=`${index+1} 0 obj\n${body}\nendobj\n`;});const xref=Buffer.byteLength(output);output+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n${offsets.slice(1).map(n=>`${String(n).padStart(10,'0')} 00000 n \n`).join('')}trailer\n<< /Size ${objects.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;return Buffer.from(output);}
+export function cleanPdfFixture(){return pdf(['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>','<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 300] /Resources << >> >>']);}
+export function infectedPdfFixture(){const test=antivirusTestBytes();return pdf(['<< /Type /Catalog /Pages 2 0 R /Names << /EmbeddedFiles 6 0 R >> >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>','<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 300] /Resources << >> >>',`<< /Type /EmbeddedFile /Length ${test.length} >>\nstream\n${test.toString('ascii')}\nendstream`,'<< /Type /Filespec /F (antivirus-test.txt) /EF << /F 4 0 R >> >>','<< /Names [(antivirus-test.txt) 5 0 R] >>']);}

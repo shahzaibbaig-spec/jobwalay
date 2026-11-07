@@ -1,0 +1,15 @@
+import { beforeEach,describe,expect,it,vi } from 'vitest';
+import { z } from 'zod';
+const context=vi.hoisted(()=>({authenticated:true,account:true,limited:false}));
+vi.mock('server-only',()=>({}));
+vi.mock('@/lib/env/server',()=>({appUrl:()=> 'https://jobs.example'}));
+vi.mock('@/lib/supabase/server',()=>({createClient:async()=>({rpc:async()=>({error:context.limited?{message:'Too many requests. Try again later.'}:null}),auth:{getUser:async()=>({data:{user:context.authenticated?{id:'user',email_confirmed_at:'2026-01-01'}:null},error:null})},from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:context.account?{id:'user',onboarded_at:'2026-01-01'}:null})})})})})}));
+import { apiGuard,apiError,readJson } from '../src/lib/api';
+describe('HTTP API transport and authentication boundary',()=>{
+ it('returns a private 429 and retry hint when the database quota is exhausted',async()=>{context.limited=true;const response=await apiGuard(new Request('https://jobs.example/api/example'));expect(response?.status).toBe(429);expect(response?.headers.get('retry-after')).toBe('60');expect(response?.headers.get('cache-control')).toContain('no-store');});
+ beforeEach(()=>{context.authenticated=true;context.account=true;context.limited=false;});
+ it('rejects cross-origin or missing-origin mutation requests',async()=>{for(const origin of ['https://attacker.example','']){const response=await apiGuard(new Request('https://jobs.example/api/org/example',{method:'POST',headers:{origin}}),true);expect(response?.status).toBe(403);}expect(await apiGuard(new Request('https://jobs.example/api/org/example',{method:'POST',headers:{origin:'https://jobs.example'}}),true)).toBeNull();});
+ it('returns unauthenticated/forbidden responses without trusting a route guard',async()=>{context.authenticated=false;expect((await apiGuard(new Request('https://jobs.example/api/example')))?.status).toBe(401);context.authenticated=true;context.account=false;expect((await apiGuard(new Request('https://jobs.example/api/example')))?.status).toBe(403);});
+ it('bounds JSON bytes independently of claimed Content-Length',async()=>{await expect(readJson(new Request('https://jobs.example/api/example',{method:'POST',headers:{'Content-Type':'application/json','Content-Length':'1'},body:JSON.stringify({payload:'x'.repeat(129*1024)})}))).rejects.toThrow(/too large/);});
+ it('rejects invalid JSON/types and keeps validation responses private',async()=>{await expect(readJson(new Request('https://jobs.example/api/example',{method:'POST',headers:{'Content-Type':'application/json'},body:'not json'}))).rejects.toThrow(/Invalid JSON/);await expect(readJson(new Request('https://jobs.example/api/example',{method:'POST',body:'{}'}))).rejects.toThrow(/application\/json/);const result=z.object({id:z.uuid()}).safeParse({id:'invalid'});if(result.success)throw new Error('Fixture unexpectedly valid');const response=apiError(result.error);expect(response.status).toBe(400);expect(response.headers.get('cache-control')).toContain('no-store');});
+});

@@ -1,0 +1,41 @@
+name: jobwalay-antivirus
+services:
+  clamav:
+    # Official stable image resolved on 2026-10-29; review digest when upgrading.
+    image: clamav/clamav@sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d
+    container_name: jobwalay-clamav
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3310:3310"
+    volumes:
+      - clamav-signatures:/var/lib/clamav
+    mem_limit: 4g
+    cpus: 2
+    environment:
+      CLAMD_STARTUP_TIMEOUT: "600"
+      FRESHCLAM_CHECKS: "12"
+      CLAMD_CONF_StreamMaxLength: "12M"
+      CLAMD_CONF_MaxFileSize: "12M"
+      CLAMD_CONF_MaxScanSize: "50M"
+      CLAMD_CONF_MaxScanTime: "20000"
+      CLAMD_CONF_MaxRecursion: "16"
+      CLAMD_CONF_MaxFiles: "1000"
+      CLAMD_CONF_MaxThreads: "2"
+      CLAMD_CONF_MaxQueue: "4"
+      CLAMD_CONF_AlertEncrypted: "yes"
+      CLAMD_CONF_AlertExceedsMax: "yes"
+      CLAMD_CONF_FailIfCvdOlderThan: "7"
+      CLAMD_CONF_ConcurrentDatabaseReload: "no"
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      start_period: 180s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+volumes:
+  clamav-signatures:

@@ -1,0 +1,4 @@
+import Image from 'next/image';
+export function CompanyBrand({org,name,logo,cover}:{org:string;name:string;logo:boolean;cover:boolean}) {
+  return <div className="overflow-hidden rounded-2xl border bg-white"><div className="h-40 bg-gradient-to-r from-brand-navy via-brand-blue to-brand-green sm:h-56">{cover&&<Image src={`/media/company/${org}/cover`} width={1600} height={600} alt={`${name} cover`} unoptimized className="h-full w-full object-cover" />}</div><div className="relative mx-6 -mt-10 mb-5 flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-brand-tint text-3xl font-bold text-brand-navy">{logo?<Image src={`/media/company/${org}/logo`} alt={`${name} logo`} width={96} height={96} unoptimized className="h-full w-full object-cover" />:name.slice(0,2).toUpperCase()}</div></div>;
+}
