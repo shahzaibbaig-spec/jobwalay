@@ -10,6 +10,10 @@ Recruiter invitations and multiple memberships use the existing team administrat
 
 ## Jobs
 
+Public discovery also includes a reviewed external Indeed snapshot in `src/modules/jobs/external-catalog.ts`. On 7 November 2026, 13 distinct AJK listings were identified on [Indeed's AJK search page](https://pk.indeed.com/jobs?l=Azad+Kashmir); a duplicate was excluded. Only title, employer, location and source job ID are retained. Individual advertisements could not be fetched for availability verification, so the UI explicitly asks users to confirm availability and requirements on Indeed. This is not an exhaustive or automatically synchronized feed. Entries expire from discovery and detail/application routes on 21 November 2026 unless reviewed and updated.
+
+These global source references do not create tenant-owned employer records, bypass company verification, or enter the Jobwalay application pipeline. Unknown employment types/work arrangements do not satisfy those search filters. External application entry requires authentication/onboarding and shows an explicit handoff to the fixed Indeed job URL without sharing candidate information. Snapshot changes are versioned through Git; no import credentials, paid services or database schema changes are introduced.
+
 `/org/{id}` is the company dashboard, with status filters and bounded pages. Create at `/org/{id}/jobs/new`; edit and manage publication, assignments and received profile-based applications at `/org/{id}/jobs/{jobId}`.
 
 Jobs include title, description, department, location, remote/hybrid/onsite mode, employment type, minimum/maximum experience, education, required skills, optional salary range with currency/period, deadline, number of positions and an optional same-organization published assessment version. Salary values use fixed decimal database columns. Form deadlines are explicitly entered/displayed in Pakistan time (UTC+05:00) and stored as timestamptz.

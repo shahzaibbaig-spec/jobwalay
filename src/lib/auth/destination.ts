@@ -5,6 +5,7 @@ import { z } from 'zod';
 export function authDestination(value: unknown): string {
   if (value === '/organizations/new') return value;
   if (typeof value === 'string') {
+    if (/^\/jobs\/external\/[a-f0-9]{16}\/apply$/.test(value)) return value;
     const match = /^\/jobs\/([^/]+)\/apply$/.exec(value);
     if (match && z.uuid().safeParse(match[1]).success) return value;
   }
