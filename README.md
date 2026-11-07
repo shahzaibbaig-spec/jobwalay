@@ -2,6 +2,8 @@
 
 Next.js App Router recruitment platform with Supabase authentication, candidate profiles and private CVs, multiple organization memberships, company verification, job management/discovery, saved jobs and applicant tracking. Assessments include a question bank, approved pools, immutable versions, timed autosave, server grading, human review, retakes/appeals, automatic shortlisting and in-app notifications.
 
+Visitors can browse published jobs and company pages without an account. Applying or registering a company requires sign-in/signup; these entry points preserve the selected application or company-registration destination through authentication and onboarding. Email verification resumes that destination in the same browser within one hour. Employers must complete company verification before publishing vacancies. Drafts and private hiring records remain restricted.
+
 ## Local setup
 
 Requires Node.js 22.12+ (tested on 24), npm, and Docker Desktop with Linux containers running. On Windows PowerShell use `npm.cmd` / `npx.cmd` if execution policy blocks npm.ps1.

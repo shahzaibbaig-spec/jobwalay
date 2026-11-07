@@ -7,17 +7,29 @@ import { onboard } from './service';
 import { requireUser } from '@/lib/auth/context';
 import { z } from 'zod';
 import { invalid, type FormState } from '@/lib/forms';
+import { cookies } from 'next/headers';
+import { authDestination, authDestinationCookie } from '@/lib/auth/destination';
+
+async function rememberDestination(value: unknown) {
+  const jar = await cookies();
+  jar.set(authDestinationCookie, authDestination(value), {
+    httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production',
+    path: '/', maxAge: 60 * 60,
+  });
+}
 export async function login(_: FormState, form: FormData): Promise<FormState> {
   const input = credentialsSchema.safeParse(Object.fromEntries(form));
   if (!input.success) return invalid();
   const db = await createClient();
   const { error } = await db.auth.signInWithPassword(input.data);
   if (error) return { error: 'Unable to sign in. Check your credentials and verify your email.' };
-  redirect('/dashboard');
+  (await cookies()).delete(authDestinationCookie);
+  redirect(authDestination(form.get('next')));
 }
 export async function signup(_: FormState, form: FormData): Promise<FormState> {
   const input = credentialsSchema.safeParse(Object.fromEntries(form));
   if (!input.success) return invalid();
+  await rememberDestination(form.get('next'));
   const db = await createClient();
   const { error } = await db.auth.signUp({ ...input.data, options: { emailRedirectTo: `${appUrl()}/auth/callback` } });
   if (error) return { error: 'Unable to register. Please try again later.' };
@@ -26,6 +38,7 @@ export async function signup(_: FormState, form: FormData): Promise<FormState> {
 export async function resendVerification(_: FormState, form: FormData): Promise<FormState> {
   const email = emailSchema.safeParse(form.get('email'));
   if (!email.success) return invalid();
+  await rememberDestination(form.get('next'));
   const db = await createClient();
   await db.auth.resend({ type: 'signup', email: email.data, options: { emailRedirectTo: `${appUrl()}/auth/callback` } });
   return { message: 'If eligible, a verification email has been sent.' };
@@ -58,5 +71,5 @@ export async function onboardingAction(_: FormState, form: FormData): Promise<Fo
   const name = z.string().trim().min(1).max(100).safeParse(form.get('name'));
   if (!name.success) return invalid();
   await onboard(name.data);
-  redirect('/dashboard');
+  redirect(authDestination(form.get('next')));
 }

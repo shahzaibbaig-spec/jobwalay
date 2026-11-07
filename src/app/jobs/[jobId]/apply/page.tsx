@@ -7,7 +7,7 @@ import { ActionForm } from '@/components/action-form';
 import { Field } from '@/components/field';
 import { applyAction } from '@/modules/applications/server/actions';
 export default async function ApplicationForm({params}:{params:Promise<{jobId:string}>}){
-  const {jobId}=await params;if(!z.uuid().safeParse(jobId).success)notFound();const {db,user}=await requireUser();const job=await publicJob(jobId);if(!job)notFound();
+  const {jobId}=await params;if(!z.uuid().safeParse(jobId).success)notFound();const {db,user}=await requireUser(true, `/jobs/${jobId}/apply`);const job=await publicJob(jobId);if(!job)notFound();
   const [profile,documents,active]=await Promise.all([db.from('candidate_profiles').select('current_cv_id').eq('user_id',user.id).maybeSingle(),db.from('candidate_documents').select('id,filename,created_at').eq('user_id',user.id).eq('scan_status','clean').order('created_at',{ascending:false}).limit(100),db.from('applications').select('id').eq('job_id',jobId).eq('candidate_id',user.id).not('status','in','(withdrawn,rejected)').maybeSingle()]);
   if(profile.error||documents.error||active.error)throw new Error('Unable to prepare application');
   if(active.data)return <section className="panel max-w-xl"><h1 className="text-2xl font-bold">You have an active application</h1><p className="mt-4"><Link href={`/candidate/applications/${active.data.id}`}>View application and status →</Link></p></section>;
