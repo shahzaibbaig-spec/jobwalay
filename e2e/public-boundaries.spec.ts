@@ -1,4 +1,11 @@
 import { test,expect } from '@playwright/test';
+test('shows persistent signup validation feedback without submitting invalid input', async ({ page }) => {
+  await page.goto('/signup');
+  await page.getByLabel('Email address').fill('not-an-email');
+  await page.getByLabel(/Password/).fill('Synthetic-password-123');
+  await page.getByRole('button', { name: 'Create account', exact: true }).click();
+  await expect(page.locator('form').getByRole('alert')).toContainText('valid email address');
+});
 test('offers public browsing and employer registration from the home page', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('link', { name: 'Browse jobs', exact: true })).toHaveAttribute('href', '/jobs');

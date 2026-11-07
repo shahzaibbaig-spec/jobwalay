@@ -4,6 +4,8 @@ Next.js App Router recruitment platform with Supabase authentication, candidate 
 
 Visitors can browse published jobs and company pages without an account. Applying or registering a company requires sign-in/signup; these entry points preserve the selected application or company-registration destination through authentication and onboarding. Email verification resumes that destination in the same browser within one hour. Employers must complete company verification before publishing vacancies. Drafts and private hiring records remain restricted.
 
+Public signup requires custom SMTP in Supabase Auth while email confirmation remains enabled. Supabase's default mail service restricts recipients to project team members and has low sending limits; enabling signup alone does not enable public verification delivery. Signup displays validation, delivery and rate-limit feedback without exposing provider details or confirming whether an address is already registered. Configure an SMTP provider within the approved free plan; never disable verification to bypass email delivery setup.
+
 ## Local setup
 
 Requires Node.js 22.12+ (tested on 24), npm, and Docker Desktop with Linux containers running. On Windows PowerShell use `npm.cmd` / `npx.cmd` if execution policy blocks npm.ps1.

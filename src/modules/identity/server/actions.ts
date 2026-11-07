@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { invalid, type FormState } from '@/lib/forms';
 import { cookies } from 'next/headers';
 import { authDestination, authDestinationCookie } from '@/lib/auth/destination';
+import { signupErrorMessage } from '../signup-feedback';
 
 async function rememberDestination(value: unknown) {
   const jar = await cookies();
@@ -28,12 +29,21 @@ export async function login(_: FormState, form: FormData): Promise<FormState> {
 }
 export async function signup(_: FormState, form: FormData): Promise<FormState> {
   const input = credentialsSchema.safeParse(Object.fromEntries(form));
-  if (!input.success) return invalid();
+  if (!input.success) return { error: 'Enter a valid email address and a password between 12 and 128 characters.' };
   await rememberDestination(form.get('next'));
   const db = await createClient();
-  const { error } = await db.auth.signUp({ ...input.data, options: { emailRedirectTo: `${appUrl()}/auth/callback` } });
-  if (error) return { error: 'Unable to register. Please try again later.' };
-  return { message: 'Check your email for a verification link. If already registered, sign in or reset your password.' };
+  let result: Awaited<ReturnType<typeof db.auth.signUp>>;
+  try {
+    result = await db.auth.signUp({ ...input.data, options: { emailRedirectTo: `${appUrl()}/auth/callback` } });
+  } catch {
+    console.warn('Signup request failed', { code: 'request_failed' });
+    return { error: 'Unable to reach the signup service. Please try again shortly.' };
+  }
+  if (result.error) {
+    console.warn('Signup request failed', { code: result.error.code, status: result.error.status });
+    return { error: signupErrorMessage(result.error.code, result.error.status) };
+  }
+  return { message: 'Check your inbox and spam folder for the verification link to finish signing up. You must verify your email before signing in. If already registered, sign in or reset your password.' };
 }
 export async function resendVerification(_: FormState, form: FormData): Promise<FormState> {
   const email = emailSchema.safeParse(form.get('email'));
